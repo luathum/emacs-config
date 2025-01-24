@@ -1558,7 +1558,3 @@ configuración aquí a los archivos output asociados.
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'cz/org-babel-tangle-config)))
 #+end_src
-
-# Local Variables:
-# jinx-local-words: "emacs"
-# End:
