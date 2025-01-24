@@ -1,0 +1,279 @@
+#+TITLE: Emacs Desktop Enviroument
+#+PROPERTY: header-args:emacs-lisp :tangle ./desktop.el
+
+* EXWM
+** desktop-environment
+Instala y configura el paquete [[https://github.com/DamienCassou/desktop-environment][desktop-environment]] el cual nos sirve
+para controlar diversos aspectos de nuestro sistema como el volumen o
+el brillo.
+
+*NOTA*: requiere la siguiente lista de paquetes:
+- *Volumen*: amixer
+- *Brillo*: brightnessctl
+- *Screenshot*: scrot
+- *Screenlock*: slock
+- *Keyboard backlight*: upower
+- *Wifi and bluetooth*: TLP
+- *Musica*: playerctl
+
+  #+begin_src emacs-lisp
+    (use-package desktop-environment
+      :ensure t
+      :after exwm
+      :config (desktop-environment-mode)
+      :custom
+      (desktop-environment-screenshot-directory "~/pictures/screenshots")
+      (desktop-environment-brightness-small-increment "2%+")
+      (desktop-environment-brightness-small-decrement "2%-")
+      (desktop-environment-brightness-normal-increment "5%+")
+      (desktop-environment-brightness-normal-decrement "5%-"))
+  #+end_src
+
+** Dmenu
+Instala dmenu para usarlo dentro de emacs.
+#+begin_src emacs-lisp
+  (use-package dmenu
+    :ensure t)
+#+end_src
+
+** buffer-move
+Instala y configura un paquete que sirve para intercambiar ventanas en
+emacs.
+
+#+begin_src emacs-lisp
+  (use-package buffer-move
+    :ensure t)
+#+end_src
+
+** Setup
+Configura como queremos que funcione EXWM.
+
+#+begin_src emacs-lisp
+  (defun cz/run-in-background (command)
+    (let ((command-parts (split-string command "[ ]+")))
+      (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+
+  ;; polybar
+  (defvar cz/polybar-process nil
+    "Guarda el proceso de la instancia de polybar si esta corriendo alguna")
+
+  (defun cz/kill-panel ()
+    (interactive)
+    (when cz/polybar-process
+      (ignore-errors
+        (kill-process cz/polybar-process)))
+    (setq cz/polybar-process nil))
+
+  (defun cz/start-panel ()
+    (interactive)
+    (cz/kill-panel)
+    (setq cz/polybar-process (start-process-shell-command "polybar" nil "polybar exwm")))
+
+  ;; end polybar config
+  (defun cz/exwm-init-hook ()
+    (cz/start-panel))
+
+  (defun cz/exwm-update-class ()
+    (exwm-workspace-rename-buffer exwm-class-name))
+
+  (defun cz/exwm-update-title ()
+    (pcase exwm-class-name
+      ;; ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))
+      ;; ("LibreWolf" (exwm-workspace-rename-buffer (format "LibreWolf: %s" pexwm-title)))
+      ))
+
+  (defun cz/configure-window-by-class ()
+    (interactive)
+    (pcase exwm-class-name
+      ;; ("Xdm-app" (exwm-workspace-move-window 4))
+      ("Xdm-app" (exwm-floating-toggle-floating)
+       (exwm-layout-toggle-mode-line))))
+
+  (defun cz/set-wallpaper ()
+    (interactive)
+    (start-process-shell-command
+     "feh" nil  "feh --bg-scale ~/pictures/wallpapers/pexels-iriser-1366957.jpg"))
+
+  ;; change window to workspace
+  (defun cz/exwm-move-window-to-workspace(workspace-number)
+  (interactive)
+  (let ((frame (exwm-workspace--workspace-from-frame-or-index workspace-number))
+        (id (exwm--buffer->id (window-buffer))))
+    (exwm-workspace-move-window frame id)))
+
+  (use-package exwm
+    :ensure t
+    :config
+    (setq exwm-workspace-number 6)
+
+    (defun cz/polybar-exwm-workspace ()
+      (pcase exwm-workspace-current-index
+        (0 "0")
+        (1 "1")
+        (2 "2")
+        (3 "3")
+        (4 "4")
+        (5 "6")))
+
+    (setq exwm-layout-show-all-buffers t)
+
+    (setq exwm-workspace-show-all-buffers nil)
+
+    (add-hook 'exwm-update-class-hook #'cz/exwm-update-class)
+
+    (add-hook 'exwm-update-title-hook #'cz/exwm-update-title)
+
+    (add-hook 'exwm-manage-finish-hook #'cz/configure-window-by-class)
+
+    (add-hook 'exwm-init-hook #'cz/exwm-init-hook)
+
+    ;; set the screen resolution
+    (require 'exwm-randr)
+    (exwm-randr-mode)
+    (start-process-shell-command "xrandr" nil "xrandr --output VGA-1 --primary --mode 1600x900 --pos 0x0 --rotate normal --output DP-1 --off --output HDMI-1 --off --output DP-2 --off --output HDMI-2 --off")
+
+    ;; Set the wallpaper after setting screen resolution
+    (cz/set-wallpaper)
+
+    ;; Set frame transparency
+    (set-frame-parameter (selected-frame) 'alpha '(90 . 90))
+    (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
+    (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+    (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+    (setq exwm-input-prefix-keys
+          '(?\C-x
+            ?\C-u
+            ?\C-h
+            ?\M-x
+            ?\M-`
+            ?\M-&
+            ?\M-:
+            ?\M-\M-j
+            ?\C-\ ))
+
+    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+
+    (setq exwm-input-global-keys
+          `(
+            ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
+            (,(kbd "s-r") . exwm-reset)
+
+            ;; Move between windows
+            (,(kbd "s-b") . windmove-left)
+            (,(kbd "s-f") . windmove-right)
+            (,(kbd "s-p") . windmove-up)
+            (,(kbd "s-n") . windmove-down)
+
+            ;; resize windows
+            (,(kbd "M-s-b") . exwm-layout-shrink-window-horizontally)
+            (,(kbd "M-s-f") . exwm-layout-enlarge-window-horizontally)
+            (,(kbd "M-s-p") . exwm-layout-enlarge-window)
+            (,(kbd "M-s-b") . exwm-layout-shrink-window)
+
+            ;;swap windows
+            (,(kbd "s-B") . buf-move-left)
+            (,(kbd "s-F") . buf-move-right)
+            (,(kbd "s-P") . buf-move-up)
+            (,(kbd "s-N") . buf-move-down)
+
+            ;;change buffers
+            (,(kbd "s-e") . next-buffer)
+            (,(kbd "s-a") . previous-buffer)
+
+            ;;volume
+            (,(kbd "s-,") . desktop-environment-volume-increment)
+            (,(kbd "s-.") . desktop-environment-volume-decrement)
+            (,(kbd "M-s-,") . desktop-environment-volume-increment-slowly)
+            (,(kbd "M-s-.") . desktop-environment-volume-decrement-slowly)
+
+            ;; run dmenu
+            (,(kbd "s-SPC") . dmenu)
+
+            ;; toggle fullschreen
+            (, (kbd "s-t f") . exwm-layout-toggle-fullscreen)
+
+            ;; run terminal
+            (,(kbd "s-<return>") . vterm)
+
+            ;; Switch workspace
+            (,(kbd "s-w") . exwm-workspace-switch)
+
+            ;; Move window to workspace
+            (,(kbd "s-m") . exwm-workspace-move-window)
+
+            ;; Move window to workspace and switch
+            ,@(mapcar (lambda (i)
+                      `(,(kbd (format "M-s-m %d" i)) .
+                        (lambda ()
+                          (interactive)
+                          (cz/exwm-move-window-to-workspace ,i)
+                          (run-with-idle-timer 0.05 nil (lambda () (exwm-workspace-switch ,i)))
+                          )))
+                    (number-sequence 0 5))
+            ))
+
+          (setq exwm-input-simulation-keys
+                `((,(kbd "C-b") . ,(kbd "<left>"))
+                  (,(kbd "M-b") . ,(kbd "C-<left>"))
+                  (,(kbd "C-f") . ,(kbd "<right>"))
+                  (,(kbd "M-f") . ,(kbd "C-<right>"))
+                  (,(kbd "C-p") . ,(kbd "<up>"))
+                  (,(kbd "C-n") . ,(kbd "<down>"))
+                  (,(kbd "C-a") . ,(kbd "<home>"))
+                  (,(kbd "C-e") . ,(kbd "<end>"))
+                  (,(kbd "M-v") . ,(kbd "<prior>"))
+                  (,(kbd "C-v") . ,(kbd "<next>"))
+                  (,(kbd "C-d") . ,(kbd "<delete>"))
+                  (,(kbd "M-d") . ,(kbd "C-<delete>"))
+                  (,(kbd "M-<backspace>") . ,(kbd "C-<backspace>"))
+                  (,(kbd "C-k") . ,(kbd "S-<end> <delete>"))
+                  ;; cut/paste.
+                  (,(kbd "C-w") . ,(kbd "C-x"))
+                  (,(kbd "M-w") . ,(kbd "C-c"))
+                  (,(kbd "C-y") . ,(kbd "C-v"))
+                  ;; search
+                  (,(kbd "C-s") . ,(kbd "C-f"))
+                  ;; undo
+                  (,(kbd "C-/") . ,(kbd "C-z"))
+                  ))
+
+          (exwm-enable))
+#+end_src
+* Desktop File
+Este archivo es usado por el display manager, para mostrar EXWM como
+una opción durante el login
+
+*NOTA*: se necesita haber creado una link simbólico para este archivo
+ en /usr/share/xsessions:
+ #+begin_src sh :tangle no
+   sudo ln -f ~/.dotfiles/emacs/exwm/exwm.desktop /usr/share/xsessions/exwm.desktop
+ #+end_src
+
+ #+begin_src :tangle ./exwm/exwm.desktop :mkdirp yes
+[Desktop Entry]
+Name=EXWM
+Comment=Emacs Window Manager
+Exec=sh $HOME/.dotfiles/emacs/exwm/start-exwm.sh
+TryExec=sh
+Type=Application
+X-LightDM-DesktopName=exwm
+DesktopNames=exwm
+ #+end_src
+ 
+* Launcher Script
+El launcher script es invocado por el exwm.desktop para arrancar el
+gestor de ventanas.
+
+#+begin_src shell :tangle ./exwm/start-exwm.sh :shebang #/bin/sh
+  # compositor
+  killall picom
+  picom &
+
+  #Activa el bloqueo de pantalla al suspender, requiere slock y xss-lock
+  xss-lock -- slock &
+
+  # Inicia EXWM
+  # exec dbus-launch --exit-with-session emacs -mm --debug-init -l ~/.config/emacs/desktop.el
+  exec dbus-run-session emacs -mm --debug-init -l ~/.config/emacs/desktop.el
+#+end_src
