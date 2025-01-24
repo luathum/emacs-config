@@ -840,6 +840,13 @@ manejar git desde Emacs
           magit-diff-refine-hunk t))
 #+end_src
 
+*** Nota
+Para que almacenar localmente el =personal access token= es necesaria
+la siguiente configuración global:
+#+begin_src zsh
+  git config --global credential.helper store
+#+end_src
+
 ** git-gutter
 Instala un paquete que nos brinda información sobre git en nuestro
 buffer.
