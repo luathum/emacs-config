@@ -1,13 +1,11 @@
 #+TITLE: Configuración de Emacs
-#+AUTHOR: coun7zer0
-#+EMAIL: coun7zer0@proton.me
 #+OPTIONS: num:nil
 
 * Basic Configuration
 Configuración y preferencias básicas de usuario.
 #+begin_src emacs-lisp
-  (setq user-full-name "William Christopher Rendon Castruita")
-  (setq user-mail-address "coun7zer0@proton.me")
+  (setq user-full-name (getenv "USER_NAME"))
+  (setq user-mail-address (getenv "USER_EMAIL"))
   (prefer-coding-system 'utf-8-unix)
 #+end_src
 
