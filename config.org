@@ -296,6 +296,15 @@ Activa las ligaduras de la fuente.
   (global-ligature-mode t))
 #+end_src
 
+** keybindings
+*** ibuffer
+ibuffer un paquete integrado con Emacs que nos permite tener mas
+funcionalidad a la hora de listar buffers.
+
+#+begin_src emacs-lisp
+  (use-package ibuffer
+    :bind(("C-x C-b" . ibuffer-other-window)))
+#+end_src
 * Theme
 ** Instalación
 Instalación de temas.
@@ -585,7 +594,7 @@ un modo para trabajar en markdown.
                 ("C-c C-e" . markdown-do)))
 #+end_src
 
-* Minibuffer
+* Mini-buffer
 ** subword-mode
 Inicia el subword-mode al arrancar el minibuffer.
 
@@ -681,7 +690,7 @@ orderless.
 ** Consult
 *** Instalación
 Descarga y activa consult, el cual nos permite hacer búsquedas mas
-potentes ademas de potenciar algunas funciones.
+potentes además de potenciar algunas funciones.
 
 #+begin_src emacs-lisp
   (use-package consult
@@ -1556,3 +1565,7 @@ configuración aquí a los archivos output asociados.
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'cz/org-babel-tangle-config)))
 #+end_src
+
+# Local Variables:
+# jinx-local-words: "Orderless ibuffer"
+# End:
