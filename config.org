@@ -367,8 +367,6 @@ automáticamente distribuyendo el espacio.
 #+end_src
 
 * Buffers de texto
-
-
 ** Spell checker
 Instala y configura jinx, un paquete para la corrección de texto es
 emacs.
