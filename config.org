@@ -318,6 +318,15 @@ lenguajes
       (ansi-color-apply-on-region compilation-filter-start (point))
     (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)))
 #+end_src
+
+*** scratch
+Configura scratch, el cual es un buffer especial para escribir o
+probar cosas de manera efímera.
+
+#+begin_src emacs-lisp
+  (use-package simple
+    :bind(("C-c b s" . scratch-buffer)))
+#+end_src
 * Theme
 ** Instalación
 Instalación de temas.
