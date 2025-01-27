@@ -296,7 +296,7 @@ Activa las ligaduras de la fuente.
   (global-ligature-mode t))
 #+end_src
 
-** keybindings
+** extra
 *** ibuffer
 ibuffer un paquete integrado con Emacs que nos permite tener mas
 funcionalidad a la hora de listar buffers.
@@ -304,6 +304,19 @@ funcionalidad a la hora de listar buffers.
 #+begin_src emacs-lisp
   (use-package ibuffer
     :bind(("C-x C-b" . ibuffer-other-window)))
+#+end_src
+
+*** compile
+compile es un paquete que nos permite realizar compilación en diversos
+lenguajes
+#+begin_src emacs-lisp
+  (use-package compile
+    :bind(("C-c b c" . compilation-goto-in-progress-buffer))
+    :config
+    (require 'ansi-color)
+    (defun colorize-compilation-buffer ()
+      (ansi-color-apply-on-region compilation-filter-start (point))
+    (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)))
 #+end_src
 * Theme
 ** Instalación
