@@ -1532,18 +1532,18 @@ Permite agregar sangria a la derecha usando C-<tab>.
 Permite agregar sangria a la izquierda usando S-<tab>.
 
 #+begin_src emacs-lisp
-    (defun cz/indent-left ()
+  (defun cz/indent-left ()
     "Indent the current line or the selected region to the left."
     (interactive)
-          (if (region-active-p)
-                          (let ((start (save-excursion
+    (if (region-active-p)
+        (let ((start (save-excursion
                        (goto-char (region-beginning))
                        (line-beginning-position)))
               (end (save-excursion
-                                                                           (goto-char (region-en
-d))
-                                                                           (line-en
-d-position))))
+                     (goto-char (region-en
+                                 d))
+                     (line-en
+                      d-position))))
           (indent-rigidly start end (- tab-width))
           (setq deactivate-mark nil)) ; Mantener la selección activa
       (indent-rigidly (line-beginning-position) (line-end-position) (- tab-width))))
