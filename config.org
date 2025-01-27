@@ -910,13 +910,28 @@ almacenamiento de repositorios.
 
 * Terminal
 ** vterm
-Instala una muy buena terminal.
+Instala y configura vterm
 
 #+begin_src emacs-lisp
+  (defun cz/vterm-in-project-root ()
+    "Abre vterm en el directorio raíz del proyecto."
+    (interactive)
+    (let* ((proj (project-current t))
+           (root (project-root proj))
+           (project-name (or (project-name proj)
+                             (file-name-nondirectory
+                              (directory-file-name root))))
+           (buffer-name (concat "*" project-name "-vterm*")))
+      (let ((default-directory root))
+        (if-let ((buf (get-buffer buffer-name))
+                 (mode-check (with-current-buffer buf (derived-mode-p 'vterm-mode))))
+            (switch-to-buffer buf)
+          (vterm buffer-name)))))
+
   (use-package vterm
     :ensure t
-    :config
-    (global-set-key (kbd "C-c x") 'vterm))
+    :bind (("C-c x" . vterm)
+           ("C-x p v" . cz/vterm-in-project-root)))
 #+end_src
 
 * Dired
