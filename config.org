@@ -954,18 +954,6 @@ Muestra indicadores de los espacios.
   (add-hook 'prog-mode-hook 'whitespace-mode)
 #+end_src
 
-*** flymake-diagnostic-at-point
-Instala flymake-diagnostic-at-point el cual es un paquete que nos
-muestra los errores al hacer hover sobre el mismo.
-
-#+begin_src emacs-lisp
-  (use-package flymake-diagnostic-at-point
-    :ensure t
-    :after flymake
-    :config
-    (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode))
-#+end_src
-
 *** Tree-sitter
 Configura la descarga de los grammar para treesitter.
 
