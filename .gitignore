@@ -21,3 +21,4 @@ desktop.el
 dmenu-items
 org-roam.db
 early-init.el
+eshell

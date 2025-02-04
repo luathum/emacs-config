@@ -1146,8 +1146,8 @@ Configura las funciones que inician con java.
   (add-hook 'java-ts-mode-hook 'start-java-modes)
 #+end_src
 
-** Comandos personalizados
-*** create-java-test-file
+*** Comandos personalizados
+**** create-java-test-file
 Crea una función que genera el archivo de test en java del archivo
 actual.
 
@@ -1173,6 +1173,37 @@ actual.
         (error "Buffer not visiting a file or not a Java file"))))
 
   (global-set-key (kbd "C-c l t") 'cz/create-java-test-file)
+#+end_src
+
+**** run-junit-test-for-current-class ()
+Crea una función que ejecuta los test de la clase actual usando el
+console launcher de junit.
+
+#+begin_src emacs-lisp
+  (defun cz/run-junit-test-for-current-class ()
+    "Run Java test using JUnit Console Launcher"
+    (interactive)
+    (let* ((root-dir (project-root (project-current)))
+           (current-file (buffer-file-name))
+           (relative-path (file-relative-name current-file root-dir))
+           (trimmed-path (replace-regexp-in-string "^src/\\(main\\|test\\)/java/" "" relative-path))
+           (class-name (replace-regexp-in-string "/" "."
+                                                 (replace-regexp-in-string "\\.java$" "" trimmed-path)))
+           (project-name (file-name-nondirectory (directory-file-name root-dir)))
+           (buffer-name (concat "*" project-name "-tests*")))
+
+      (if (get-buffer buffer-name)
+          (switch-to-buffer buffer-name)
+        (progn
+          (eshell)
+          (rename-buffer buffer-name t)))
+      (end-of-buffer)
+      (insert (format "cd '%s' && mvn clean compile test-compile && java -jar junit-platform-console-standalone-1.9.3.jar --disable-banner --details=tree --details-theme=ascii --class-path target/test-classes:target/classes --select-class=%s"
+                      root-dir
+                      class-name))
+      (eshell-send-input)))
+
+  (global-set-key (kbd "C-x p t") 'cz/run-junit-test-for-current-class)
 #+end_src
 ** JSON
 *** tree-sitter
